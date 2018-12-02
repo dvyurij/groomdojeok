@@ -11,6 +11,7 @@
 using namespace std;
 
 void ConvertSpecialChar(string &sp);
+void CropCodeArea(string &inputstr, size_t from, size_t to);
 void CropBracedArea(string &inputstr, size_t from, size_t to);
 void RemoveSign(string &inputstr);
 std::string ReplaceAll(std::string &str, const std::string& from, const std::string& to);
@@ -86,11 +87,9 @@ int parsehtml(string &_html)
 		cout << right_pos << endl;
 	}
 
-	CropBracedArea(_html, left_pos, right_pos);
+	CropCodeArea(_html, left_pos, right_pos);
 	RemoveSign(_html);
 	ConvertSpecialChar(_html);
-
-	_html = "#include <stdio.h>\n\nint main(void)\n" + _html;
 
 	return 0;
 }
@@ -104,9 +103,14 @@ void ConvertSpecialChar(string &sp)
 	ReplaceAll(sp, "&lt;", "<");
 	ReplaceAll(sp, "&gt;", ">");
 	ReplaceAll(sp, "&nbsp;", " ");
-	ReplaceAll(sp, ";", ";\n");
-	ReplaceAll(sp, "{", "{\n");
-	ReplaceAll(sp, "}", "}\n");
+}
+
+void CropCodeArea(string &inputstr, size_t from, size_t to)
+{
+	size_t left_b, right_b;
+	left_b = inputstr.find("#include", from);
+	right_b = inputstr.rfind("}", to);
+	inputstr = inputstr.substr(left_b, right_b - left_b + 1);
 }
 
 void CropBracedArea(string &inputstr, size_t from, size_t to)
@@ -126,7 +130,11 @@ void RemoveSign(string &inputstr)
 	{
 		right_t = inputstr.find(">", left_t);
 		selectedstr = inputstr.substr(left_t, right_t - left_t + 1);
-		ReplaceAll(inputstr, selectedstr, "");
+
+		if (selectedstr == "<br>" || selectedstr == "</p>")
+			ReplaceAll(inputstr, selectedstr, "\n");
+		else
+			ReplaceAll(inputstr, selectedstr, "");
 	}
 }
 
